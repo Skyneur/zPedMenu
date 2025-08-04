@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #52525b #27272a;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #52525b;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: #ef4444;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+/* Red scrollbar for ped grid */
+.scrollbar-red {
+  scrollbar-width: thin;
+  scrollbar-color: #FF3837 #27272a;
+}
+
+.scrollbar-red::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-red::-webkit-scrollbar-track {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+.scrollbar-red::-webkit-scrollbar-thumb {
+  background: #FF3837;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-red::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
