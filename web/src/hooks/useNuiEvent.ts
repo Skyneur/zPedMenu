@@ -33,21 +33,17 @@ const useNuiEvent = <T = unknown>(
 
   useEffect(() => {
     const eventListener = (event: MessageEvent<NuiMessageData<T>>) => {
-      console.log('NUI Event received:', event.data); // Debug log
       const { action: eventAction, data } = event.data;
 
       if (savedHandler.current) {
         if (eventAction === action) {
-          console.log(`Handling NUI event: ${action}`, data); // Debug log
           savedHandler.current(data);
         }
       }
     };
 
-    console.log(`Registering NUI event listener for: ${action}`); // Debug log
     window.addEventListener("message", eventListener);
     return () => {
-      console.log(`Unregistering NUI event listener for: ${action}`); // Debug log
       window.removeEventListener("message", eventListener);
     };
   }, [action]);
