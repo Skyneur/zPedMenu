@@ -118,3 +118,7 @@ RegisterNUICallback("select_ped", function(data, cb)
     end
     cb("ok:)")
 end)
+
+RegisterNuiCallback("get_theme", function(data, cb)
+    cb(LoadResourceFile(GetCurrentResourceName(), "theme.json"))
+end)
