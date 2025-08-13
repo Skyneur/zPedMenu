@@ -119,31 +119,66 @@ RegisterNUICallback("select_ped", function(data, cb)
     cb("ok:)")
 end)
 
+-- Gestion des thèmes ------------------------------------------------------
+local currentThemeName = (CONFIG and CONFIG.theme) or "default"
+
+local function loadTheme(themeName)
+    if not themeName or #themeName == 0 then return nil end
+    local path = string.format("themes/%s.json", themeName)
+    local raw = LoadResourceFile(GetCurrentResourceName(), path)
+    if not raw or #raw == 0 then return nil end
+    local ok, def = pcall(json.decode, raw)
+    if not ok or type(def) ~= "table" then return nil end
+    return def
+end
+
 RegisterNuiCallback("get_theme", function(data, cb)
-    local themeName = (CONFIG and CONFIG.theme) and CONFIG.theme or "darkRed"
-    local filePath = string.format("themes/%s.json", themeName)
-    local raw = LoadResourceFile(GetCurrentResourceName(), filePath)
-    if not raw or #raw == 0 then
-        cb({ current = themeName, themes = {} })
+    -- Permettre de demander un thème spécifique via data.name (sinon courant)
+    local requested = (data and data.name) and data.name or currentThemeName
+    local def = loadTheme(requested)
+    if not def then
+        -- Fallback sur default puis sur premier fichier existant
+        if requested ~= "default" then
+            def = loadTheme("default")
+            currentThemeName = def and "default" or currentThemeName
+        end
+    else
+        currentThemeName = requested
+    end
+    if not def then
+        cb({ current = currentThemeName, themes = {} })
         return
     end
-    local okTheme, def = pcall(json.decode, raw)
-    if not okTheme or type(def) ~= "table" then
-        cb({ current = themeName, themes = {} })
+    cb({ current = currentThemeName, themes = { [currentThemeName] = def } })
+end)
+
+RegisterNuiCallback("set_theme", function(data, cb)
+    local name = data and data.name
+    if type(name) ~= "string" or #name == 0 then
+        cb({ ok = false, error = "invalid_name" })
         return
     end
-    local pedModel = data.ped
-    local modelHash = GetHashKey(pedModel)
-    local playerPed = PlayerPedId()
-    local currentModel = GetEntityModel(playerPed)
-    if modelHash == currentModel then
+    local def = loadTheme(name)
+    if not def then
+        cb({ ok = false, error = "not_found" })
         return
     end
-    if loadModel(pedModel) then
-        SetPlayerModel(PlayerId(), modelHash)
-        SetModelAsNoLongerNeeded(modelHash)
-        playerPed = PlayerPedId()
-        SetPedDefaultComponentVariation(playerPed)
+    currentThemeName = name
+    cb({ ok = true, current = currentThemeName, themes = { [currentThemeName] = def } })
+end)
+
+RegisterNuiCallback("list_themes", function(data, cb)
+    local resource = GetCurrentResourceName()
+    local themes = {}
+    local handle = StartFindKvp("zpm_theme_") -- placeholder (FiveM ne liste pas les fichiers via API standard côté client)
+    EndFindKvp(handle)
+    -- Comme limitation: on retourne juste ceux connus statiquement
+    local known = { "default", "blue", "emerald", "violet", "amber", "crimson", "cyber" }
+    for _, name in ipairs(known) do
+        local def = loadTheme(name)
+        if def then
+            themes[name] = def
+        end
     end
-    cb({ current = themeName, themes = { [themeName] = def } })
+    cb({ current = currentThemeName, themes = themes })
 end)

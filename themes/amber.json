@@ -1,0 +1,22 @@
+{
+  "name": "Ambre Chaud",
+  "accent": "#f59e0b",
+  "accentSoft": "rgba(245,158,11,0.25)",
+  "panelBackground": "rgba(48,32,0,0.78)",
+  "panelBorder": "rgba(245,158,11,0.45)",
+  "backgroundOverlay": "rgba(60,32,0,0.20)",
+  "backgroundBlur": "5px",
+  "itemBg": "#3b2400",
+  "itemBgHover": "#4d3105",
+  "itemBgActive": "#5e3b07",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.20)",
+  "textPrimary": "#fff8ef",
+  "textSecondary": "#fce2be",
+  "textMuted": "#c49d67",
+  "scrollbarThumb": "#f59e0b",
+  "scrollbarTrack": "#3b2400",
+  "svgAccent": "#fbbf24",
+  "radius": "12px",
+  "fontFamily": "'Inter', 'Roboto', sans-serif"
+}

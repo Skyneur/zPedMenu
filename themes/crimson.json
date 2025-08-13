@@ -1,0 +1,22 @@
+{
+  "name": "Crimson Futuriste",
+  "accent": "#ef4444",
+  "accentSoft": "rgba(239,68,68,0.28)",
+  "panelBackground": "rgba(40,8,12,0.82)",
+  "panelBorder": "rgba(239,68,68,0.45)",
+  "backgroundOverlay": "rgba(50,0,8,0.20)",
+  "backgroundBlur": "7px",
+  "itemBg": "#2d0f15",
+  "itemBgHover": "#45171f",
+  "itemBgActive": "#5b1f28",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.22)",
+  "textPrimary": "#ffecec",
+  "textSecondary": "#f8b9b9",
+  "textMuted": "#c97d7d",
+  "scrollbarThumb": "#ef4444",
+  "scrollbarTrack": "#2d0f15",
+  "svgAccent": "#f87171",
+  "radius": "16px",
+  "fontFamily": "'Inter', 'Nunito', sans-serif"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Noir Profond",
+  "accent": "#f97316",
+  "accentSoft": "rgba(249,115,22,0.25)",
+  "panelBackground": "rgba(10,10,12,0.88)",
+  "panelBorder": "rgba(249,115,22,0.35)",
+  "backgroundOverlay": "rgba(0,0,0,0)",
+  "backgroundBlur": "5px",
+  "itemBg": "#16181d",
+  "itemBgHover": "#1f2329",
+  "itemBgActive": "#2b3037",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.18)",
+  "textPrimary": "#f8fafc",
+  "textSecondary": "#cbd5e1",
+  "textMuted": "#64748b",
+  "scrollbarThumb": "#334155",
+  "scrollbarTrack": "#16181d",
+  "svgAccent": "#f97316",
+  "radius": "12px",
+  "fontFamily": "'Inter', 'Roboto', sans-serif"
+}

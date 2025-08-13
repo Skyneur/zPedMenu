@@ -1,0 +1,22 @@
+{
+  "name": "Violet Néon",
+  "accent": "#8b5cf6",
+  "accentSoft": "rgba(139,92,246,0.25)",
+  "panelBackground": "rgba(32,16,48,0.80)",
+  "panelBorder": "rgba(139,92,246,0.45)",
+  "backgroundOverlay": "rgba(24,0,48,0.25)",
+  "backgroundBlur": "8px",
+  "itemBg": "#2a1742",
+  "itemBgHover": "#3a2360",
+  "itemBgActive": "#4b2f80",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.22)",
+  "textPrimary": "#f5f1ff",
+  "textSecondary": "#d5c9f9",
+  "textMuted": "#9984d6",
+  "scrollbarThumb": "#8b5cf6",
+  "scrollbarTrack": "#2a1742",
+  "svgAccent": "#b794f4",
+  "radius": "18px",
+  "fontFamily": "'Poppins', 'Inter', sans-serif"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Blanc Pur",
+  "accent": "#2563eb",
+  "accentSoft": "rgba(37,99,235,0.18)",
+  "panelBackground": "rgba(255,255,255,0.92)",
+  "panelBorder": "rgba(0,0,0,0.08)",
+  "backgroundOverlay": "rgba(255,255,255,0)",
+  "backgroundBlur": "4px",
+  "itemBg": "#ffffff",
+  "itemBgHover": "#f1f5f9",
+  "itemBgActive": "#e2e8f0",
+  "favoriteBg": "#2563eb",
+  "favoriteInactiveBg": "rgba(0,0,0,0.08)",
+  "textPrimary": "#111827",
+  "textSecondary": "#374151",
+  "textMuted": "#6b7280",
+  "scrollbarThumb": "#cbd5e1",
+  "scrollbarTrack": "#f1f5f9",
+  "svgAccent": "#2563eb",
+  "radius": "10px",
+  "fontFamily": "'Inter', 'Segoe UI', sans-serif"
+}

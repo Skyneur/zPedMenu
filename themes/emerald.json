@@ -1,0 +1,22 @@
+{
+  "name": "Émeraude Brume",
+  "accent": "#10b981",
+  "accentSoft": "rgba(16,185,129,0.22)",
+  "panelBackground": "rgba(7,31,25,0.78)",
+  "panelBorder": "rgba(16,185,129,0.40)",
+  "backgroundOverlay": "rgba(0,40,32,0.15)",
+  "backgroundBlur": "5px",
+  "itemBg": "#0f3d30",
+  "itemBgHover": "#155844",
+  "itemBgActive": "#1d7057",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.20)",
+  "textPrimary": "#e9fef8",
+  "textSecondary": "#b3e9d9",
+  "textMuted": "#6ba896",
+  "scrollbarThumb": "#10b981",
+  "scrollbarTrack": "#0f3d30",
+  "svgAccent": "#10b981",
+  "radius": "14px",
+  "fontFamily": "'Inter', 'Segoe UI', sans-serif"
+}

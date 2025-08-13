@@ -1,0 +1,22 @@
+{
+  "name": "Gothique Sombre",
+  "accent": "#7f1d1d",
+  "accentSoft": "rgba(127,29,29,0.30)",
+  "panelBackground": "linear-gradient(145deg, rgba(10,10,14,0.92), rgba(22,13,18,0.92))",
+  "panelBorder": "rgba(127,29,29,0.45)",
+  "backgroundOverlay": "radial-gradient(circle at 50% 40%, rgba(80,0,20,0.18), rgba(0,0,0,0.55))",
+  "backgroundBlur": "6px",
+  "itemBg": "rgba(24,18,26,0.65)",
+  "itemBgHover": "rgba(40,28,42,0.78)",
+  "itemBgActive": "rgba(55,34,48,0.90)",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.18)",
+  "textPrimary": "#f5f2ef",
+  "textSecondary": "#d3c7c2",
+  "textMuted": "#8c7a74",
+  "scrollbarThumb": "#4b0f13",
+  "scrollbarTrack": "rgba(24,18,26,0.65)",
+  "svgAccent": "#b91c1c",
+  "radius": "14px",
+  "fontFamily": "'UnifrakturCook', 'Old English Text MT', 'Cinzel', 'serif'"
+}
