@@ -3,6 +3,35 @@ import { motion, AnimatePresence } from "framer-motion";
 import pedsData from "./data/peds.json";
 import fetchNui from "./hooks/fetchNui";
 import useNuiEvent from "./hooks/useNuiEvent";
+import { isEnvBrowser } from "./hooks/misc"; // ajout
+
+// Types thème
+interface ThemeDefinition {
+  name: string;
+  accent: string;
+  accentSoft: string;
+  panelBackground: string;
+  panelBorder: string;
+  backgroundImage: string;
+  backgroundOverlay: string;
+  backgroundBlur: string;
+  itemBg: string;
+  itemBgHover: string;
+  itemBgActive: string;
+  favoriteBg: string;
+  favoriteInactiveBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  scrollbarThumb: string;
+  scrollbarTrack: string;
+  radius: string;
+  fontFamily: string;
+}
+interface ThemeServerResponse {
+  current: string;
+  themes: Record<string, ThemeDefinition>;
+}
 
 // Composants d'icônes SVG
 const StarIcon = ({
@@ -134,6 +163,9 @@ const PedMenu: React.FC = () => {
     const saved = localStorage.getItem("pedMenuSelected");
     return saved || null;
   });
+  const [themeResp, setThemeResp] = useState<ThemeServerResponse | null>(null);
+  const [currentThemeKey, setCurrentThemeKey] = useState<string>("");
+  const currentTheme: ThemeDefinition | undefined = (currentThemeKey && themeResp?.themes[currentThemeKey]) || undefined;
 
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -165,6 +197,58 @@ const PedMenu: React.FC = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isVisible]);
 
+  // Chargement du fichier de thèmes au montage
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await fetchNui<ThemeServerResponse>("get_theme", {ped:selectedPed});
+        if (resp && resp.themes) {
+          setThemeResp(resp);
+          setCurrentThemeKey(resp.current);
+        }
+      } catch (e) {
+        console.warn("Impossible de charger le theme (get_theme)", e);
+      }
+    })();
+  }, []);
+
+  // Application des variables CSS du thème
+  useEffect(() => {
+    if (!currentTheme) return;
+    const root = document.documentElement;
+    root.classList.add("theme-transition");
+    const t = currentTheme;
+    if (t) {
+      const map: Record<string, string> = {
+        "--accent": t.accent,
+        "--accent-soft": t.accentSoft,
+        "--panel-bg": t.panelBackground,
+        "--panel-border": t.panelBorder,
+        "--bg-image": t.backgroundImage,
+        "--bg-overlay": t.backgroundOverlay,
+        "--bg-blur": t.backgroundBlur,
+        "--item-bg": t.itemBg,
+        "--item-bg-hover": t.itemBgHover,
+        "--item-bg-active": t.itemBgActive,
+        "--favorite-bg": t.favoriteBg,
+        "--favorite-inactive-bg": t.favoriteInactiveBg,
+        "--text-primary": t.textPrimary,
+        "--text-secondary": t.textSecondary,
+        "--text-muted": t.textMuted,
+        "--scrollbar-thumb": t.scrollbarThumb,
+        "--scrollbar-track": t.scrollbarTrack,
+        "--radius": t.radius,
+        "--font-family": t.fontFamily,
+      };
+      Object.entries(map).forEach(([k, v]) => root.style.setProperty(k, v));
+    }
+    const timeout = setTimeout(
+      () => root.classList.remove("theme-transition"),
+      300
+    );
+    return () => clearTimeout(timeout);
+  }, [currentTheme]);
+
   const closeMenu = () => {
     setIsVisible(false);
     fetchNui("close_menu");
@@ -179,7 +263,7 @@ const PedMenu: React.FC = () => {
   // Ajouter/retirer un favori
   const toggleFavorite = (pedModel: string) => {
     const newFavorites = favorites.includes(pedModel)
-      ? favorites.filter((fav) => fav !== pedModel)
+      ? favorites.filter((fav: string) => fav !== pedModel)
       : [...favorites, pedModel];
     saveFavorites(newFavorites);
   };
@@ -237,17 +321,14 @@ const PedMenu: React.FC = () => {
     <AnimatePresence mode="wait">
       {isVisible && (
         <>
-          <div
-            className="fixed inset-0 z-0"
-            style={{
-              backgroundImage: `url('https://media.discordapp.net/attachments/1343338147370762362/1397918699096113172/image.png?ex=688378bd&is=6882273d&hm=65d1fd10d3eab6f1479c5e9ef6853f1506a8b3dd01b7114152d804762168dbbf&=&format=webp&quality=lossless&width=550&height=309')`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-            }}
-          />
           <motion.div
-            className="fixed top-16 right-16 w-[450px] h-[700px] bg-zinc-900/85 backdrop-blur-sm rounded-lg shadow-2xl text-white p-5 z-50 flex flex-col"
+            className="fixed top-16 right-16 w-[450px] h-[700px] text-white p-5 z-50 flex flex-col"
+            style={{
+              background: "var(--panel-bg)",
+              border: "1px solid var(--panel-border)",
+              borderRadius: "var(--radius)",
+              fontFamily: "var(--font-family)",
+            }}
             initial={{ opacity: 0, transform: "translateX(50px) scale(0.95)" }}
             animate={{ opacity: 1, transform: "translateX(0) scale(1)" }}
             exit={{ opacity: 0, transform: "translateX(50px) scale(0.95)" }}
@@ -256,15 +337,34 @@ const PedMenu: React.FC = () => {
           >
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-xl font-semibold">Ped Menu</h2>
+                <h2
+                  className="text-xl font-semibold"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  Ped Menu
+                </h2>
                 {selectedPed && (
-                  <p className="text-sm text-[#FF3837] font-medium">
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--accent)" }}
+                  >
                     Sélectionné: {formatPedName(selectedPed)}
+                  </p>
+                )}
+                {currentTheme && (
+                  <p
+                    className="text-[11px] mt-1"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Thème: {currentTheme.name}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-zinc-400">
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   {filteredPeds.length} peds{" "}
                   {showFavorites &&
                     favorites.length > 0 &&
@@ -272,33 +372,44 @@ const PedMenu: React.FC = () => {
                 </span>
                 <button
                   onClick={() => setShowFavorites(!showFavorites)}
-                  className={`relative p-2 rounded-md transition-all duration-200 group cursor-pointer ${
-                    showFavorites
-                      ? "bg-zinc-700 text-[#FF3837] ring-2 ring-[#FF3837]/50 shadow-lg"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                  }`}
+                  className="relative p-2 rounded-md transition-all duration-200 group cursor-pointer"
+                  style={{
+                    background: showFavorites ? "var(--item-bg-hover)" : "var(--item-bg)",
+                    color: showFavorites ? "var(--accent)" : "var(--text-secondary)",
+                    boxShadow: showFavorites ? "0 0 0 2px var(--accent-soft)" : undefined,
+                  }}
                   title={
                     showFavorites ? "Voir tous les peds" : "Voir les favoris"
                   }
                 >
                   {!showFavorites && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                    <div
+                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5"
+                      style={{ background: "var(--accent)" }}
+                    />
                   )}
                   <div>
                     <StarIcon filled={showFavorites} className="w-5 h-5" />
                   </div>
                   {favorites.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#FF3837] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    <span
+                      className="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                      style={{ background: "var(--accent)" }}
+                    >
                       {favorites.length}
                     </span>
                   )}
                 </button>
                 <button
                   onClick={closeMenu}
-                  className="relative p-2 rounded-md bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-all duration-200 border-2 border-transparent group cursor-pointer"
+                  className="relative p-2 rounded-md transition-all duration-200 group cursor-pointer"
+                  style={{ background: "var(--item-bg)", color: "var(--text-secondary)" }}
                   title="Fermer le menu"
                 >
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                  <div
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                    style={{ background: "var(--accent)" }}
+                  />
                   <div>
                     <CloseIcon className="w-5 h-5" />
                   </div>
@@ -310,7 +421,13 @@ const PedMenu: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search peds..."
-                  className="w-full px-4 py-3 pr-10 rounded-lg bg-zinc-800 text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#FF3837] transition-all duration-200"
+                  className="w-full px-4 py-3 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    background: "var(--item-bg)",
+                    color: "var(--text-primary)",
+                    border: "1px solid transparent",
+                    boxShadow: "0 0 0 0 var(--accent-soft)",
+                  }}
                   value={searchTerm}
                   onFocus={() => {
                     fetchNui("handle_input_focus", { state: true });
@@ -323,7 +440,8 @@ const PedMenu: React.FC = () => {
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 cursor-pointer"
+                    style={{ color: "var(--text-secondary)" }}
                     title="Effacer la recherche"
                   >
                     <CloseIcon className="w-4 h-4" />
@@ -332,23 +450,18 @@ const PedMenu: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-between mb-4 relative">
-              <div className="absolute inset-0 bg-zinc-800 rounded-lg"></div>
+              <div className="absolute inset-0 rounded-lg" style={{ background: "var(--item-bg)" }} />
               {!showFavorites && (
                 <motion.div
-                  className="absolute bg-[#FF3837]/20 ring-1 ring-[#FF3837]/50 rounded-md h-full"
+                  className="absolute rounded-md h-full"
                   style={{
                     width: `${100 / categories.length}%`,
-                    left: `${
-                      (categories.indexOf(activeTab) / categories.length) * 100
-                    }%`,
+                    left: `${(categories.indexOf(activeTab) / categories.length) * 100}%`,
+                    background: "var(--accent-soft)",
+                    boxShadow: "0 0 0 1px var(--accent-soft)",
                   }}
                   layout
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                    duration: 0.4,
-                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.4 }}
                 />
               )}
               {categories.map((cat) => (
@@ -358,43 +471,41 @@ const PedMenu: React.FC = () => {
                     setActiveTab(cat);
                     setShowFavorites(false);
                   }}
-                  className={`relative flex-1 py-2 text-xs font-medium rounded-md transition-all duration-200 z-10 border-2 group cursor-pointer ${
-                    activeTab === cat && !showFavorites
-                      ? "text-[#FF3837] border-[#FF3837]/50 bg-zinc-700"
-                      : "text-zinc-300 hover:text-white border-transparent hover:bg-zinc-700"
-                  }`}
+                  className="relative flex-1 py-2 text-xs font-medium rounded-md transition-all duration-200 z-10 group cursor-pointer"
+                  style={{
+                    background: activeTab === cat && !showFavorites ? "var(--item-bg-hover)" : "transparent",
+                    color: activeTab === cat && !showFavorites ? "var(--accent)" : "var(--text-secondary)",
+                  }}
                 >
                   {(activeTab !== cat || showFavorites) && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                    <div
+                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                      style={{ background: "var(--accent)" }}
+                    />
                   )}
                   <div>{cat}</div>
                 </button>
               ))}
             </div>
-            <div className="w-full h-0.5 bg-[#FF3837] mb-4 opacity-50"></div>
-            <div
-              ref={gridRef}
-              className="grid grid-cols-3 gap-3 flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red"
-            >
+            <div className="w-full h-0.5 mb-4 opacity-50" style={{ background: "var(--accent)" }} />
+            <div ref={gridRef} className="grid grid-cols-3 gap-3 flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red">
               <motion.div
                 key={`${activeTab}-${showFavorites}`}
                 className="contents"
                 initial={{ opacity: 0, transform: "translateX(20px)" }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, transform: "translateX(-20px)" }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeInOut",
-                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
               >
                 {filteredPeds.map((ped) => (
                   <div key={ped.model} className="relative">
                     <button
-                      className={`relative w-full h-32 p-3 rounded-md transition-all duration-300 border-2 group cursor-pointer ${
-                        selectedPed === ped.model
-                          ? "bg-zinc-700 text-[#FF3837] border-transparent"
-                          : "bg-zinc-800 text-zinc-200 hover:text-white border-transparent hover:bg-zinc-700"
-                      }`}
+                      className="relative w-full h-32 p-3 rounded-md transition-all duration-300 group cursor-pointer border"
+                      style={{
+                        background: selectedPed === ped.model ? "var(--item-bg-hover)" : "var(--item-bg)",
+                        color: selectedPed === ped.model ? "var(--accent)" : "var(--text-primary)",
+                        borderColor: "transparent",
+                      }}
                       onClick={() => selectPed(ped.model)}
                     >
                       {selectedPed === ped.model && (
@@ -413,30 +524,28 @@ const PedMenu: React.FC = () => {
                               height="97"
                               rx="3"
                               ry="3"
-                              stroke="#FF3837"
+                              stroke="var(--accent)"
                               strokeWidth="1.5"
                               fill="none"
                               initial={{ strokeDashoffset: 388 }}
                               animate={{ strokeDashoffset: 0 }}
-                              transition={{
-                                duration: 1.2,
-                                ease: "easeInOut",
-                              }}
-                              style={{
-                                strokeDasharray: "388",
-                                transformOrigin: "50% 100%",
-                              }}
+                              transition={{ duration: 1.2, ease: "easeInOut" }}
+                              style={{ strokeDasharray: "388", transformOrigin: "50% 100%" }}
                             />
                           </svg>
                         </div>
                       )}
-
-                      {/* Ligne rouge en bas au hover - seulement si pas sélectionné */}
                       {selectedPed !== ped.model && (
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                        <div
+                          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                          style={{ background: "var(--accent)" }}
+                        />
                       )}
                       <div className="flex flex-col items-center justify-between h-full">
-                        <div className="w-16 h-16 bg-zinc-700 rounded-lg overflow-hidden transition-all flex items-center justify-center relative mt-1">
+                        <div
+                          className="w-16 h-16 rounded-lg overflow-hidden transition-all flex items-center justify-center relative mt-1"
+                          style={{ background: "var(--item-bg-hover)" }}
+                        >
                           <img
                             src={ped.image}
                             alt={formatPedName(ped.model)}
@@ -457,51 +566,41 @@ const PedMenu: React.FC = () => {
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: "vertical",
                             maxHeight: "2.4em",
+                            color: "var(--text-primary)",
                           }}
                         >
                           {formatPedName(ped.model)}
                         </span>
                       </div>
                     </button>
-
-                    {/* Bouton favori positionné dans le coin de la div du ped */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleFavorite(ped.model);
                       }}
-                      className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm z-10 cursor-pointer ${
-                        favorites.includes(ped.model)
-                          ? "bg-white/90 shadow-lg"
-                          : "bg-white/20 hover:bg-white/40"
-                      }`}
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm z-10 cursor-pointer"
+                      style={{
+                        background: favorites.includes(ped.model) ? "var(--favorite-bg)" : "var(--favorite-inactive-bg)",
+                        boxShadow: favorites.includes(ped.model) ? "0 0 0 2px var(--accent-soft)" : undefined,
+                      }}
                       title={
-                        favorites.includes(ped.model)
-                          ? "Retirer des favoris"
-                          : "Ajouter aux favoris"
+                        favorites.includes(ped.model) ? "Retirer des favoris" : "Ajouter aux favoris"
                       }
                     >
-                      <StarIcon
-                        filled={favorites.includes(ped.model)}
-                        className="w-3 h-3"
-                      />
+                      <StarIcon filled={favorites.includes(ped.model)} className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
               </motion.div>
             </div>
-
-            {/* Messages d'état */}
             {filteredPeds.length === 0 && (
-              <div className="text-center py-8 text-zinc-400">
+              <div className="text-center py-8" style={{ color: "var(--text-secondary)" }}>
                 {showFavorites ? (
                   <>
-                    <p className="text-lg font-medium">
-                      Aucun favori sauvegardé
-                    </p>
-                    <p className="text-sm mt-2 text-zinc-500">
+                    <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>Aucun favori sauvegardé</p>
+                    <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>
                       Cliquez sur{" "}
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-white/10 rounded-full mx-1">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full mx-1" style={{ background: "var(--favorite-inactive-bg)" }}>
                         <StarIcon className="w-3 h-3" />
                       </span>{" "}
                       pour ajouter des peds en favoris
@@ -509,10 +608,8 @@ const PedMenu: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium">Aucun ped trouvé</p>
-                    <p className="text-sm mt-2 text-zinc-500">
-                      Essayez un autre terme de recherche
-                    </p>
+                    <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>Aucun ped trouvé</p>
+                    <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>Essayez un autre terme de recherche</p>
                   </>
                 )}
               </div>
@@ -520,16 +617,24 @@ const PedMenu: React.FC = () => {
             <div className="flex justify-between gap-3">
               <button
                 onClick={getRandomPed}
-                className="relative flex-1 bg-zinc-700 text-sm px-4 py-2 rounded text-white transition-all font-medium border-2 border-transparent hover:bg-zinc-600 group cursor-pointer"
+                className="relative flex-1 text-sm px-4 py-2 rounded font-medium group cursor-pointer border"
+                style={{ background: "var(--item-bg)", color: "var(--text-primary)", borderColor: "transparent" }}
               >
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <div
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                  style={{ background: "var(--accent)" }}
+                />
                 <div>Random Ped</div>
               </button>
               <button
                 onClick={resetToDefault}
-                className="relative flex-1 bg-zinc-700 text-sm px-4 py-2 rounded text-white transition-all font-medium border-2 border-transparent hover:bg-zinc-600 group cursor-pointer"
+                className="relative flex-1 text-sm px-4 py-2 rounded font-medium group cursor-pointer border"
+                style={{ background: "var(--item-bg)", color: "var(--text-primary)", borderColor: "transparent" }}
               >
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 bg-[#FF3837] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <div
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                  style={{ background: "var(--accent)" }}
+                />
                 <div>Reset Default</div>
               </button>
             </div>

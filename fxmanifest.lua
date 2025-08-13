@@ -5,7 +5,7 @@ lua54 "yes"
 ui_page "web/dist/index.html"
 
 files {
-    "theme.json",
+    "themes/*.json",
     "web/dist/**/*"
 }
 

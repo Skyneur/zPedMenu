@@ -5,7 +5,7 @@ local config <const> = {
         key = "F9",
         description = "Ouvrir le menu ped"
     },
-    theme = "default", -- Identifiant du thème à utiliser (fichier themes/<theme>.json)
+    theme = "darkRed", -- Identifiant du thème à utiliser (fichier themes/<theme>.json)
     can_open = function()
         return true
     end,

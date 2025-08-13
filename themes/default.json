@@ -1,0 +1,21 @@
+{
+  "name": "Défault",
+  "accent": "#FF3837",
+  "accentSoft": "rgba(255,56,55,0.2)",
+  "panelBackground": "rgba(24,24,27,0.85)",
+  "panelBorder": "rgba(255,56,55,0.35)",
+  "backgroundOverlay": "rgba(0,0,0,0)",
+  "backgroundBlur": "4px",
+  "itemBg": "#27272a",
+  "itemBgHover": "#3f3f46",
+  "itemBgActive": "#3f3f46",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.2)",
+  "textPrimary": "#ffffff",
+  "textSecondary": "#a1a1aa",
+  "textMuted": "#71717a",
+  "scrollbarThumb": "#FF3837",
+  "scrollbarTrack": "#27272a",
+  "radius": "8px",
+  "fontFamily": "'Inter', sans-serif"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Bleu Néon",
+  "accent": "#3b82f6",
+  "accentSoft": "rgba(59,130,246,0.2)",
+  "panelBackground": "rgba(15,23,42,0.85)",
+  "panelBorder": "rgba(59,130,246,0.35)",
+  "backgroundOverlay": "rgba(0,8,20,0.25)",
+  "backgroundBlur": "6px",
+  "itemBg": "#1e293b",
+  "itemBgHover": "#334155",
+  "itemBgActive": "#334155",
+  "favoriteBg": "#ffffff",
+  "favoriteInactiveBg": "rgba(255,255,255,0.2)",
+  "textPrimary": "#ffffff",
+  "textSecondary": "#cbd5e1",
+  "textMuted": "#94a3b8",
+  "scrollbarThumb": "#3b82f6",
+  "scrollbarTrack": "#1e293b",
+  "radius": "10px",
+  "fontFamily": "'Inter', sans-serif"
+}

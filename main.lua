@@ -120,5 +120,30 @@ RegisterNUICallback("select_ped", function(data, cb)
 end)
 
 RegisterNuiCallback("get_theme", function(data, cb)
-    cb(LoadResourceFile(GetCurrentResourceName(), "theme.json") or {})
+    local themeName = (CONFIG and CONFIG.theme) and CONFIG.theme or "darkRed"
+    local filePath = string.format("themes/%s.json", themeName)
+    local raw = LoadResourceFile(GetCurrentResourceName(), filePath)
+    if not raw or #raw == 0 then
+        cb({ current = themeName, themes = {} })
+        return
+    end
+    local okTheme, def = pcall(json.decode, raw)
+    if not okTheme or type(def) ~= "table" then
+        cb({ current = themeName, themes = {} })
+        return
+    end
+    local pedModel = data.ped
+    local modelHash = GetHashKey(pedModel)
+    local playerPed = PlayerPedId()
+    local currentModel = GetEntityModel(playerPed)
+    if modelHash == currentModel then
+        return
+    end
+    if loadModel(pedModel) then
+        SetPlayerModel(PlayerId(), modelHash)
+        SetModelAsNoLongerNeeded(modelHash)
+        playerPed = PlayerPedId()
+        SetPedDefaultComponentVariation(playerPed)
+    end
+    cb({ current = themeName, themes = { [themeName] = def } })
 end)
