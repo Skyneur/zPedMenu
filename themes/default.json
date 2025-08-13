@@ -16,6 +16,7 @@
   "textMuted": "#71717a",
   "scrollbarThumb": "#FF3837",
   "scrollbarTrack": "#27272a",
+  "svgAccent": "#FF3837",
   "radius": "8px",
   "fontFamily": "'Inter', sans-serif"
 }

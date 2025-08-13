@@ -25,6 +25,7 @@ interface ThemeDefinition {
   textMuted: string;
   scrollbarThumb: string;
   scrollbarTrack: string;
+  svgAccent?: string;
   radius: string;
   fontFamily: string;
 }
@@ -52,7 +53,7 @@ const StarIcon = ({
     >
       <path
         d="M8.59215 3.50773L7.40706 0.954351C7.04875 0.182341 5.95124 0.182341 5.59294 0.954352L4.40785 3.50773C4.26535 3.81476 3.9772 4.02886 3.64211 4.0767L0.957183 4.46002C0.145632 4.57588 -0.1894 5.56536 0.384819 6.15044L2.40748 8.21134C2.63306 8.44118 2.73414 8.7656 2.67904 9.0829L2.18373 11.935C2.0398 12.7638 2.92109 13.3891 3.65583 12.9796L6.01315 11.6657C6.3158 11.497 6.6842 11.497 6.98685 11.6657L9.34925 12.9824C10.0831 13.3915 10.9637 12.7681 10.8217 11.94L10.3206 9.01709C10.2658 8.69721 10.3696 8.3706 10.5991 8.14108L12.586 6.15377C13.1686 5.57103 12.8359 4.57324 12.0201 4.45678L9.35789 4.0767C9.0228 4.02886 8.73465 3.81476 8.59215 3.50773Z"
-        fill="#FF3837"
+        fill="var(--svg-accent)"
       />
     </svg>
   ) : (
@@ -222,6 +223,7 @@ const PedMenu: React.FC = () => {
       const map: Record<string, string> = {
         "--accent": t.accent,
         "--accent-soft": t.accentSoft,
+          "--svg-accent": t.svgAccent || t.accent,
         "--panel-bg": t.panelBackground,
         "--panel-border": t.panelBorder,
         "--bg-image": t.backgroundImage,
