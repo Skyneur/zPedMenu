@@ -390,29 +390,74 @@ const PedMenu: React.FC = () => {
 
     const columnCount = Math.floor((400 + GAP) / (ITEM_WIDTH + GAP));
     const rowCount = Math.ceil(filteredPeds.length / columnCount);
+    // itemData pour forcer la mise à jour quand selectedPed / favorites changent
+    const itemData = useMemo(
+      () => ({
+        filteredPeds,
+        selectedPed,
+        favorites,
+        toggleFavorite,
+        selectPed,
+        formatPedName,
+        childVariants,
+      }),
+      [
+        filteredPeds,
+        selectedPed,
+        favorites,
+        toggleFavorite,
+        selectPed,
+        formatPedName,
+        childVariants,
+      ]
+    );
+    type CellData = {
+      filteredPeds: Ped[];
+      selectedPed: string | null;
+      favorites: string[];
+      toggleFavorite: (model: string) => void;
+      selectPed: (model: string) => void;
+      formatPedName: (model: string) => string;
+      childVariants: any;
+    };
 
     const Cell = ({
       columnIndex,
       rowIndex,
       style,
-    }: GridChildComponentProps) => {
+      data,
+    }: GridChildComponentProps<CellData>) => {
+      const {
+        filteredPeds,
+        selectedPed,
+        favorites,
+        toggleFavorite,
+        selectPed,
+        formatPedName,
+        childVariants,
+      } = data;
       const index = rowIndex * columnCount + columnIndex;
       if (index >= filteredPeds.length) return null;
-
       const ped = filteredPeds[index];
 
-      // ajustement pour le gap
       const adjustedStyle = {
         ...style,
         left: (style.left as number) + GAP / 2,
         top: (style.top as number) + GAP / 2,
         width: (style.width as number) - GAP,
         height: (style.height as number) - GAP,
-      };
+      } as React.CSSProperties;
 
       return (
         <div style={adjustedStyle}>
-          <motion.div variants={childVariants} className="relative">
+          <motion.div
+            key={ped.model}
+            variants={childVariants}
+            initial="hidden"
+            animate="show"
+            layout
+            className="relative"
+          >
             <button
               className="relative w-full h-32 p-3 rounded-md transition-all duration-300 group cursor-pointer border"
               style={{
@@ -526,20 +571,6 @@ const PedMenu: React.FC = () => {
       );
     };
 
-    const CellMemo = React.memo(Cell, (prev, next) => {
-      const prevIndex = prev.rowIndex * columnCount + prev.columnIndex;
-      const nextIndex = next.rowIndex * columnCount + next.columnIndex;
-
-      const prevPed = filteredPeds[prevIndex];
-      const nextPed = filteredPeds[nextIndex];
-
-      // re-render si le ped change ou si la sélection concerne cette cellule
-      const isSelectedChanged =
-        selectedPed === prevPed?.model || selectedPed === nextPed?.model;
-
-      return prevPed === nextPed && !isSelectedChanged;
-    });
-
     return (
       <Grid
         className="scrollbar-red"
@@ -550,6 +581,7 @@ const PedMenu: React.FC = () => {
         rowCount={rowCount}
         rowHeight={ITEM_HEIGHT + GAP}
         width={400}
+        itemData={itemData}
         onScroll={({ scrollTop }) => {
           scrollOffsetRef.current = scrollTop;
         }}
@@ -558,7 +590,7 @@ const PedMenu: React.FC = () => {
           return filteredPeds[index]?.model ?? `empty-${index}`;
         }}
       >
-        {CellMemo}
+        {Cell}
       </Grid>
     );
   };
