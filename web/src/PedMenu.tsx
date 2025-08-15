@@ -163,6 +163,8 @@ const PedMenu: React.FC = () => {
     const saved = localStorage.getItem("pedMenuFavorites");
     return saved ? JSON.parse(saved) : [];
   });
+  // Mémorisation du scroll vertical pour éviter le reset lors de la sélection
+  const scrollOffsetRef = useRef(0);
   const [selectedPed, setSelectedPed] = useState<string | null>(() => {
     const saved = localStorage.getItem("pedMenuSelected");
     return saved || null;
@@ -283,9 +285,17 @@ const PedMenu: React.FC = () => {
 
   // Sélectionner un ped
   const selectPed = (pedModel: string) => {
+    // Sauvegarder la position de scroll avant la mise à jour (au cas où react-window la réinitialise)
+    const savedScroll = scrollOffsetRef.current;
     setSelectedPed(pedModel);
     localStorage.setItem("pedMenuSelected", pedModel);
     fetchNui("select_ped", { model: pedModel });
+    // Restaurer la position de scroll au frame suivant
+    requestAnimationFrame(() => {
+      if (gridRef.current) {
+        gridRef.current.scrollTo({ scrollLeft: 0, scrollTop: savedScroll });
+      }
+    });
   };
 
   // Fonction pour obtenir un ped aléatoire
@@ -536,10 +546,13 @@ const PedMenu: React.FC = () => {
         ref={gridRef}
         columnCount={columnCount}
         columnWidth={ITEM_WIDTH + GAP}
-        height={600}
+        height={385}
         rowCount={rowCount}
         rowHeight={ITEM_HEIGHT + GAP}
         width={400}
+        onScroll={({ scrollTop }) => {
+          scrollOffsetRef.current = scrollTop;
+        }}
         itemKey={({ columnIndex, rowIndex }) => {
           const index = rowIndex * columnCount + columnIndex;
           return filteredPeds[index]?.model ?? `empty-${index}`;
