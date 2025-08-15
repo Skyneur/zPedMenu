@@ -489,7 +489,7 @@ const PedMenu: React.FC = () => {
               ))}
             </div>
             <div className="w-full h-0.5 mb-4 opacity-50" style={{ background: "var(--accent)" }} />
-            <div ref={gridRef} className="grid grid-cols-3 gap-3 flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red">
+            <div ref={gridRef} className="grid grid-cols-3 gap-3 content-start flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red">
               <motion.div
                 key={`${activeTab}-${showFavorites}`}
                 className="contents"
