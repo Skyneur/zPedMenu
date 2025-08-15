@@ -5,7 +5,7 @@ local config <const> = {
         key = "F9",
         description = "Ouvrir le menu ped"
     },
-    theme = "gothic",
+    theme = "default",
     can_open = function()
         return true
     end,
