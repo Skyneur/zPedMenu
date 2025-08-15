@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import pedsData from "./data/peds.json";
 import fetchNui from "./hooks/fetchNui";
 import useNuiEvent from "./hooks/useNuiEvent";
-import { isEnvBrowser } from "./hooks/misc"; // ajout
 
 // Types thème
 interface ThemeDefinition {
