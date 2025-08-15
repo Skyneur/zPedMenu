@@ -1,5 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  FixedSizeGrid as Grid,
+  type GridChildComponentProps,
+} from "react-window";
 import pedsData from "./data/peds.json";
 import fetchNui from "./hooks/fetchNui";
 import useNuiEvent from "./hooks/useNuiEvent";
@@ -169,23 +173,10 @@ const PedMenu: React.FC = () => {
     (currentThemeKey && themeResp?.themes[currentThemeKey]) || undefined;
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
 
   useNuiEvent("show_menu", () => {
     setIsVisible(true);
   });
-
-  // Fonction pour remettre le scroll en haut
-  const scrollToTop = () => {
-    if (gridRef.current) {
-      gridRef.current.scrollTop = 0;
-    }
-  };
-
-  // Reset scroll quand on change de catégorie ou de mode favoris
-  useEffect(() => {
-    scrollToTop();
-  }, [activeTab, showFavorites]);
 
   // Gestion de la touche Échap pour fermer le menu
   useEffect(() => {
@@ -312,32 +303,252 @@ const PedMenu: React.FC = () => {
     fetchNui("reset_ped");
   };
 
-  const getFilteredPeds = (): PedData[] => {
+  const filteredPeds = useMemo(() => {
     let filtered = enrichedPeds;
 
     // Filtrer par favoris si activé
     if (showFavorites) {
       filtered = filtered.filter((ped) => favorites.includes(ped.model));
     } else if (activeTab !== "All") {
-      // Filtrer par catégorie normale
       filtered = filtered.filter((ped) => ped.category === activeTab);
     }
 
     // Filtrer par terme de recherche
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (ped) =>
-          ped.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          formatPedName(ped.model)
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          ped.model.toLowerCase().includes(term) ||
+          formatPedName(ped.model).toLowerCase().includes(term)
       );
     }
 
     return filtered;
+  }, [
+    enrichedPeds,
+    showFavorites,
+    activeTab,
+    searchTerm,
+    favorites,
+    formatPedName,
+  ]);
+
+  interface Ped {
+    model: string;
+    image: string;
+  }
+
+  interface PedListProps {
+    filteredPeds: Ped[];
+    selectedPed: string | null;
+    selectPed: (model: string) => void;
+    favorites: string[];
+    toggleFavorite: (model: string) => void;
+    formatPedName: (model: string) => string;
+    childVariants: any; // tes variants framer-motion
+  }
+
+  const gridRef = useRef<Grid>(null);
+
+  // Fonction pour remettre le scroll en haut
+  const scrollToTop = () => {
+    if (gridRef.current) {
+      gridRef.current.scrollTo({
+        scrollLeft: 0,
+        scrollTop: 0,
+      });
+    }
   };
 
-  const filteredPeds = getFilteredPeds();
+  // Reset scroll quand on change de catégorie ou de mode favoris
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTab, showFavorites]);
+
+  const PedList: React.FC<PedListProps> = ({
+    filteredPeds,
+    selectedPed,
+    selectPed,
+    favorites,
+    toggleFavorite,
+    formatPedName,
+    childVariants,
+  }) => {
+    const GAP = 8; // espace entre les items
+    const ITEM_WIDTH = 120;
+    const ITEM_HEIGHT = 140;
+
+    const columnCount = Math.floor((400 + GAP) / (ITEM_WIDTH + GAP));
+    const rowCount = Math.ceil(filteredPeds.length / columnCount);
+
+    const Cell = ({
+      columnIndex,
+      rowIndex,
+      style,
+    }: GridChildComponentProps) => {
+      const index = rowIndex * columnCount + columnIndex;
+      if (index >= filteredPeds.length) return null;
+
+      const ped = filteredPeds[index];
+
+      // ajustement pour le gap
+      const adjustedStyle = {
+        ...style,
+        left: (style.left as number) + GAP / 2,
+        top: (style.top as number) + GAP / 2,
+        width: (style.width as number) - GAP,
+        height: (style.height as number) - GAP,
+      };
+
+      return (
+        <div style={adjustedStyle}>
+          <motion.div variants={childVariants} className="relative">
+            <button
+              className="relative w-full h-32 p-3 rounded-md transition-all duration-300 group cursor-pointer border"
+              style={{
+                background:
+                  selectedPed === ped.model
+                    ? "var(--item-bg-hover)"
+                    : "var(--item-bg)",
+                color:
+                  selectedPed === ped.model
+                    ? "var(--accent)"
+                    : "var(--text-primary)",
+                borderColor: "transparent",
+              }}
+              onClick={() => selectPed(ped.model)}
+            >
+              {selectedPed === ped.model && (
+                <div className="absolute inset-0 pointer-events-none">
+                  <svg
+                    className="absolute inset-0 w-full h-full"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <motion.rect
+                      x="1.5"
+                      y="1.5"
+                      width="97"
+                      height="97"
+                      rx="3"
+                      ry="3"
+                      stroke="var(--accent)"
+                      strokeWidth="1.5"
+                      fill="none"
+                      initial={{ strokeDashoffset: 388 }}
+                      animate={{ strokeDashoffset: 0 }}
+                      transition={{ duration: 1.2, ease: "easeInOut" }}
+                      style={{
+                        strokeDasharray: "388",
+                        transformOrigin: "50% 100%",
+                      }}
+                    />
+                  </svg>
+                </div>
+              )}
+              {selectedPed !== ped.model && (
+                <div
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
+                  style={{ background: "var(--accent)" }}
+                />
+              )}
+              <div className="flex flex-col items-center justify-between h-full">
+                <div
+                  className="w-16 h-16 rounded-lg overflow-hidden transition-all flex items-center justify-center relative mt-1"
+                  style={{ background: "var(--item-bg-hover)" }}
+                >
+                  <img
+                    src={ped.image}
+                    alt={formatPedName(ped.model)}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://via.placeholder.com/80x100/374151/ffffff?text=${ped.model.slice(
+                        0,
+                        3
+                      )}`;
+                    }}
+                  />
+                </div>
+                <span
+                  className="text-xs font-medium text-center leading-tight px-1 mb-1 overflow-hidden"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    maxHeight: "2.4em",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {formatPedName(ped.model)}
+                </span>
+              </div>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(ped.model);
+              }}
+              className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm z-10 cursor-pointer"
+              style={{
+                background: favorites.includes(ped.model)
+                  ? "var(--favorite-bg)"
+                  : "var(--favorite-inactive-bg)",
+                boxShadow: favorites.includes(ped.model)
+                  ? "0 0 0 2px var(--accent-soft)"
+                  : undefined,
+              }}
+              title={
+                favorites.includes(ped.model)
+                  ? "Retirer des favoris"
+                  : "Ajouter aux favoris"
+              }
+            >
+              <StarIcon
+                filled={favorites.includes(ped.model)}
+                className="w-3 h-3"
+              />
+            </button>
+          </motion.div>
+        </div>
+      );
+    };
+
+    const CellMemo = React.memo(Cell, (prev, next) => {
+      const prevIndex = prev.rowIndex * columnCount + prev.columnIndex;
+      const nextIndex = next.rowIndex * columnCount + next.columnIndex;
+
+      const prevPed = filteredPeds[prevIndex];
+      const nextPed = filteredPeds[nextIndex];
+
+      // re-render si le ped change ou si la sélection concerne cette cellule
+      const isSelectedChanged =
+        selectedPed === prevPed?.model || selectedPed === nextPed?.model;
+
+      return prevPed === nextPed && !isSelectedChanged;
+    });
+
+    return (
+      <Grid
+        className="scrollbar-red"
+        ref={gridRef}
+        columnCount={columnCount}
+        columnWidth={ITEM_WIDTH + GAP}
+        height={600}
+        rowCount={rowCount}
+        rowHeight={ITEM_HEIGHT + GAP}
+        width={400}
+        itemKey={({ columnIndex, rowIndex }) => {
+          const index = rowIndex * columnCount + columnIndex;
+          return filteredPeds[index]?.model ?? `empty-${index}`;
+        }}
+      >
+        {CellMemo}
+      </Grid>
+    );
+  };
 
   return (
     <AnimatePresence mode="wait">
@@ -539,10 +750,7 @@ const PedMenu: React.FC = () => {
               className="w-full h-0.5 mb-4 opacity-50"
               style={{ background: "var(--accent)" }}
             />
-            <div
-              ref={gridRef}
-              className="grid grid-cols-3 gap-3 content-start flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red"
-            >
+            <div className="grid grid-cols-3 gap-3 content-start flex-1 overflow-hidden mb-4 pr-2">
               <motion.div
                 key={`${activeTab}-${showFavorites}`}
                 className="contents"
@@ -550,122 +758,15 @@ const PedMenu: React.FC = () => {
                 initial="hidden"
                 animate="show"
               >
-                {filteredPeds.map((ped, index) => (
-                  <motion.div
-                    variants={childVariants}
-                    key={ped.model}
-                    className="relative"
-                  >
-                    <button
-                      className="relative w-full h-32 p-3 rounded-md transition-all duration-300 group cursor-pointer border"
-                      style={{
-                        background:
-                          selectedPed === ped.model
-                            ? "var(--item-bg-hover)"
-                            : "var(--item-bg)",
-                        color:
-                          selectedPed === ped.model
-                            ? "var(--accent)"
-                            : "var(--text-primary)",
-                        borderColor: "transparent",
-                      }}
-                      onClick={() => selectPed(ped.model)}
-                    >
-                      {selectedPed === ped.model && (
-                        <div className="absolute inset-0 pointer-events-none">
-                          <svg
-                            className="absolute inset-0 w-full h-full"
-                            viewBox="0 0 100 100"
-                            preserveAspectRatio="none"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <motion.rect
-                              x="1.5"
-                              y="1.5"
-                              width="97"
-                              height="97"
-                              rx="3"
-                              ry="3"
-                              stroke="var(--accent)"
-                              strokeWidth="1.5"
-                              fill="none"
-                              initial={{ strokeDashoffset: 388 }}
-                              animate={{ strokeDashoffset: 0 }}
-                              transition={{ duration: 1.2, ease: "easeInOut" }}
-                              style={{
-                                strokeDasharray: "388",
-                                transformOrigin: "50% 100%",
-                              }}
-                            />
-                          </svg>
-                        </div>
-                      )}
-                      {selectedPed !== ped.model && (
-                        <div
-                          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
-                          style={{ background: "var(--accent)" }}
-                        />
-                      )}
-                      <div className="flex flex-col items-center justify-between h-full">
-                        <div
-                          className="w-16 h-16 rounded-lg overflow-hidden transition-all flex items-center justify-center relative mt-1"
-                          style={{ background: "var(--item-bg-hover)" }}
-                        >
-                          <img
-                            src={ped.image}
-                            alt={formatPedName(ped.model)}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = `https://via.placeholder.com/80x100/374151/ffffff?text=${ped.model.slice(
-                                0,
-                                3
-                              )}`;
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="text-xs font-medium text-center leading-tight px-1 mb-1 overflow-hidden"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            maxHeight: "2.4em",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {formatPedName(ped.model)}
-                        </span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(ped.model);
-                      }}
-                      className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm z-10 cursor-pointer"
-                      style={{
-                        background: favorites.includes(ped.model)
-                          ? "var(--favorite-bg)"
-                          : "var(--favorite-inactive-bg)",
-                        boxShadow: favorites.includes(ped.model)
-                          ? "0 0 0 2px var(--accent-soft)"
-                          : undefined,
-                      }}
-                      title={
-                        favorites.includes(ped.model)
-                          ? "Retirer des favoris"
-                          : "Ajouter aux favoris"
-                      }
-                    >
-                      <StarIcon
-                        filled={favorites.includes(ped.model)}
-                        className="w-3 h-3"
-                      />
-                    </button>
-                  </motion.div>
-                ))}
+                <PedList
+                  filteredPeds={filteredPeds}
+                  selectedPed={selectedPed}
+                  selectPed={selectPed}
+                  favorites={favorites}
+                  toggleFavorite={toggleFavorite}
+                  formatPedName={formatPedName}
+                  childVariants={childVariants}
+                />
               </motion.div>
             </div>
             {filteredPeds.length === 0 && (
