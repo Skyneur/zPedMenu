@@ -573,6 +573,9 @@ const PedMenu: React.FC = () => {
 
     return (
       <Grid
+        style={{
+          outline: "none",
+        }}
         className="scrollbar-red"
         ref={gridRef}
         columnCount={columnCount}

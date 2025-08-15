@@ -44,3 +44,15 @@ body.theme-transition * {
 .scrollbar-red::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 4px; }
 .scrollbar-red::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; transition: background-color 0.2s ease; }
 .scrollbar-red::-webkit-scrollbar-thumb:hover { filter: brightness(1.15); }
+
+button {
+  outline: none;
+}
+
+* {
+  user-select: none;
+}
+
+img {
+  -webkit-user-drag: none;
+}
