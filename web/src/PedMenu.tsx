@@ -165,8 +165,10 @@ const PedMenu: React.FC = () => {
   });
   const [themeResp, setThemeResp] = useState<ThemeServerResponse | null>(null);
   const [currentThemeKey, setCurrentThemeKey] = useState<string>("");
-  const currentTheme: ThemeDefinition | undefined = (currentThemeKey && themeResp?.themes[currentThemeKey]) || undefined;
+  const currentTheme: ThemeDefinition | undefined =
+    (currentThemeKey && themeResp?.themes[currentThemeKey]) || undefined;
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useNuiEvent("show_menu", () => {
@@ -189,6 +191,7 @@ const PedMenu: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isVisible) {
+        inputRef.current?.blur();
         closeMenu();
       }
     };
@@ -201,7 +204,9 @@ const PedMenu: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const resp = await fetchNui<ThemeServerResponse>("get_theme", {ped:selectedPed});
+        const resp = await fetchNui<ThemeServerResponse>("get_theme", {
+          ped: selectedPed,
+        });
         if (resp && resp.themes) {
           setThemeResp(resp);
           setCurrentThemeKey(resp.current);
@@ -211,6 +216,22 @@ const PedMenu: React.FC = () => {
       }
     })();
   }, []);
+
+  const parentVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.2,
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const childVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  };
 
   // Application des variables CSS du thème
   useEffect(() => {
@@ -222,7 +243,7 @@ const PedMenu: React.FC = () => {
       const map: Record<string, string> = {
         "--accent": t.accent,
         "--accent-soft": t.accentSoft,
-          "--svg-accent": t.svgAccent || t.accent,
+        "--svg-accent": t.svgAccent || t.accent,
         "--panel-bg": t.panelBackground,
         "--panel-border": t.panelBorder,
         "--bg-image": t.backgroundImage,
@@ -375,9 +396,15 @@ const PedMenu: React.FC = () => {
                   onClick={() => setShowFavorites(!showFavorites)}
                   className="relative p-2 rounded-md transition-all duration-200 group cursor-pointer"
                   style={{
-                    background: showFavorites ? "var(--item-bg-hover)" : "var(--item-bg)",
-                    color: showFavorites ? "var(--accent)" : "var(--text-secondary)",
-                    boxShadow: showFavorites ? "0 0 0 2px var(--accent-soft)" : undefined,
+                    background: showFavorites
+                      ? "var(--item-bg-hover)"
+                      : "var(--item-bg)",
+                    color: showFavorites
+                      ? "var(--accent)"
+                      : "var(--text-secondary)",
+                    boxShadow: showFavorites
+                      ? "0 0 0 2px var(--accent-soft)"
+                      : undefined,
                   }}
                   title={
                     showFavorites ? "Voir tous les peds" : "Voir les favoris"
@@ -404,7 +431,10 @@ const PedMenu: React.FC = () => {
                 <button
                   onClick={closeMenu}
                   className="relative p-2 rounded-md transition-all duration-200 group cursor-pointer"
-                  style={{ background: "var(--item-bg)", color: "var(--text-secondary)" }}
+                  style={{
+                    background: "var(--item-bg)",
+                    color: "var(--text-secondary)",
+                  }}
                   title="Fermer le menu"
                 >
                   <div
@@ -420,6 +450,7 @@ const PedMenu: React.FC = () => {
             <div className="mb-4">
               <div className="relative">
                 <input
+                  ref={inputRef}
                   type="text"
                   placeholder="Search peds..."
                   className="w-full px-4 py-3 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 transition-all duration-200"
@@ -451,18 +482,28 @@ const PedMenu: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-between mb-4 relative">
-              <div className="absolute inset-0 rounded-lg" style={{ background: "var(--item-bg)" }} />
+              <div
+                className="absolute inset-0 rounded-lg"
+                style={{ background: "var(--item-bg)" }}
+              />
               {!showFavorites && (
                 <motion.div
                   className="absolute rounded-md h-full"
                   style={{
                     width: `${100 / categories.length}%`,
-                    left: `${(categories.indexOf(activeTab) / categories.length) * 100}%`,
+                    left: `${
+                      (categories.indexOf(activeTab) / categories.length) * 100
+                    }%`,
                     background: "var(--accent-soft)",
                     boxShadow: "0 0 0 1px var(--accent-soft)",
                   }}
                   layout
-                  transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.4 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    duration: 0.4,
+                  }}
                 />
               )}
               {categories.map((cat) => (
@@ -474,8 +515,14 @@ const PedMenu: React.FC = () => {
                   }}
                   className="relative flex-1 py-2 text-xs font-medium rounded-md transition-all duration-200 z-10 group cursor-pointer"
                   style={{
-                    background: activeTab === cat && !showFavorites ? "var(--item-bg-hover)" : "transparent",
-                    color: activeTab === cat && !showFavorites ? "var(--accent)" : "var(--text-secondary)",
+                    background:
+                      activeTab === cat && !showFavorites
+                        ? "var(--item-bg-hover)"
+                        : "transparent",
+                    color:
+                      activeTab === cat && !showFavorites
+                        ? "var(--accent)"
+                        : "var(--text-secondary)",
                   }}
                 >
                   {(activeTab !== cat || showFavorites) && (
@@ -488,23 +535,38 @@ const PedMenu: React.FC = () => {
                 </button>
               ))}
             </div>
-            <div className="w-full h-0.5 mb-4 opacity-50" style={{ background: "var(--accent)" }} />
-            <div ref={gridRef} className="grid grid-cols-3 gap-3 content-start flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red">
+            <div
+              className="w-full h-0.5 mb-4 opacity-50"
+              style={{ background: "var(--accent)" }}
+            />
+            <div
+              ref={gridRef}
+              className="grid grid-cols-3 gap-3 content-start flex-1 overflow-y-auto mb-4 pr-2 scrollbar-red"
+            >
               <motion.div
                 key={`${activeTab}-${showFavorites}`}
                 className="contents"
-                initial={{ opacity: 0, transform: "translateX(20px)" }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transform: "translateX(-20px)" }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+                variants={parentVariants}
+                initial="hidden"
+                animate="show"
               >
-                {filteredPeds.map((ped) => (
-                  <div key={ped.model} className="relative">
+                {filteredPeds.map((ped, index) => (
+                  <motion.div
+                    variants={childVariants}
+                    key={ped.model}
+                    className="relative"
+                  >
                     <button
                       className="relative w-full h-32 p-3 rounded-md transition-all duration-300 group cursor-pointer border"
                       style={{
-                        background: selectedPed === ped.model ? "var(--item-bg-hover)" : "var(--item-bg)",
-                        color: selectedPed === ped.model ? "var(--accent)" : "var(--text-primary)",
+                        background:
+                          selectedPed === ped.model
+                            ? "var(--item-bg-hover)"
+                            : "var(--item-bg)",
+                        color:
+                          selectedPed === ped.model
+                            ? "var(--accent)"
+                            : "var(--text-primary)",
                         borderColor: "transparent",
                       }}
                       onClick={() => selectPed(ped.model)}
@@ -531,7 +593,10 @@ const PedMenu: React.FC = () => {
                               initial={{ strokeDashoffset: 388 }}
                               animate={{ strokeDashoffset: 0 }}
                               transition={{ duration: 1.2, ease: "easeInOut" }}
-                              style={{ strokeDasharray: "388", transformOrigin: "50% 100%" }}
+                              style={{
+                                strokeDasharray: "388",
+                                transformOrigin: "50% 100%",
+                              }}
                             />
                           </svg>
                         </div>
@@ -581,27 +646,50 @@ const PedMenu: React.FC = () => {
                       }}
                       className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm z-10 cursor-pointer"
                       style={{
-                        background: favorites.includes(ped.model) ? "var(--favorite-bg)" : "var(--favorite-inactive-bg)",
-                        boxShadow: favorites.includes(ped.model) ? "0 0 0 2px var(--accent-soft)" : undefined,
+                        background: favorites.includes(ped.model)
+                          ? "var(--favorite-bg)"
+                          : "var(--favorite-inactive-bg)",
+                        boxShadow: favorites.includes(ped.model)
+                          ? "0 0 0 2px var(--accent-soft)"
+                          : undefined,
                       }}
                       title={
-                        favorites.includes(ped.model) ? "Retirer des favoris" : "Ajouter aux favoris"
+                        favorites.includes(ped.model)
+                          ? "Retirer des favoris"
+                          : "Ajouter aux favoris"
                       }
                     >
-                      <StarIcon filled={favorites.includes(ped.model)} className="w-3 h-3" />
+                      <StarIcon
+                        filled={favorites.includes(ped.model)}
+                        className="w-3 h-3"
+                      />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </motion.div>
             </div>
             {filteredPeds.length === 0 && (
-              <div className="text-center py-8" style={{ color: "var(--text-secondary)" }}>
+              <div
+                className="text-center py-8"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {showFavorites ? (
                   <>
-                    <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>Aucun favori sauvegardé</p>
-                    <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>
+                    <p
+                      className="text-lg font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Aucun favori sauvegardé
+                    </p>
+                    <p
+                      className="text-sm mt-2"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       Cliquez sur{" "}
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full mx-1" style={{ background: "var(--favorite-inactive-bg)" }}>
+                      <span
+                        className="inline-flex items-center justify-center w-6 h-6 rounded-full mx-1"
+                        style={{ background: "var(--favorite-inactive-bg)" }}
+                      >
                         <StarIcon className="w-3 h-3" />
                       </span>{" "}
                       pour ajouter des peds en favoris
@@ -609,8 +697,18 @@ const PedMenu: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>Aucun ped trouvé</p>
-                    <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>Essayez un autre terme de recherche</p>
+                    <p
+                      className="text-lg font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Aucun ped trouvé
+                    </p>
+                    <p
+                      className="text-sm mt-2"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      Essayez un autre terme de recherche
+                    </p>
                   </>
                 )}
               </div>
@@ -619,7 +717,11 @@ const PedMenu: React.FC = () => {
               <button
                 onClick={getRandomPed}
                 className="relative flex-1 text-sm px-4 py-2 rounded font-medium group cursor-pointer border"
-                style={{ background: "var(--item-bg)", color: "var(--text-primary)", borderColor: "transparent" }}
+                style={{
+                  background: "var(--item-bg)",
+                  color: "var(--text-primary)",
+                  borderColor: "transparent",
+                }}
               >
                 <div
                   className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
@@ -630,7 +732,11 @@ const PedMenu: React.FC = () => {
               <button
                 onClick={resetToDefault}
                 className="relative flex-1 text-sm px-4 py-2 rounded font-medium group cursor-pointer border"
-                style={{ background: "var(--item-bg)", color: "var(--text-primary)", borderColor: "transparent" }}
+                style={{
+                  background: "var(--item-bg)",
+                  color: "var(--text-primary)",
+                  borderColor: "transparent",
+                }}
               >
                 <div
                   className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/5 h-0.5 opacity-0 group-hover:opacity-100"
