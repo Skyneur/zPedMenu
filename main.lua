@@ -52,13 +52,15 @@ local function loadModel(model)
 end
 
 RegisterCommand(open_command, function()
-    SetNuiFocus(true, true)
-    SetNuiFocusKeepInput(true)
-    SendNUIMessage({
-        action = "show_menu",
-        data = {}
-    })
-    fun_handle_mouse_focused()
+    if CONFIG.can_open() then
+        SetNuiFocus(true, true)
+        SetNuiFocusKeepInput(true)
+        SendNUIMessage({
+            action = "show_menu",
+            data = {}
+        })
+        fun_handle_mouse_focused()
+    end
 end, false)
 
 if CONFIG.open_key.enabled then

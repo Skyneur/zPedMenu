@@ -10,3 +10,8 @@ files {
 }
 
 client_scripts { "config.lua", "main.lua" }
+
+escrow_ignore {
+    "themes/*.json",
+    "config.lua"
+}
